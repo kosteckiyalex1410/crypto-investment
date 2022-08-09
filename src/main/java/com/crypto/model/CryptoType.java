@@ -17,4 +17,12 @@ public enum CryptoType {
     public String fileName(){
         return fileName;
     }
+
+    public static CryptoType fromString(String cryptoTypeName){
+        try {
+             return valueOf(cryptoTypeName);
+        }catch (Exception exception){
+            throw new IllegalArgumentException("Crypto Type " + cryptoTypeName + " is not supported");
+        }
+    }
 }

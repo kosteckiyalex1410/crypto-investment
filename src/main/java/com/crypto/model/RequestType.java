@@ -17,10 +17,9 @@ public enum RequestType {
     }
 
     public static RequestType fromString(String name){
-        return Arrays.stream(RequestType.values())
-                .filter(type -> type.name.equals(name))
-                .findFirst()
-                .orElse(null);
+            return Arrays.stream(RequestType.values())
+                    .filter(type -> type.name.equals(name))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("Request Type " + name + " is not supported"));
     }
-
 }

@@ -4,6 +4,7 @@ import com.crypto.model.CryptoType;
 import com.crypto.model.RequestType;
 import com.crypto.model.Values;
 import com.crypto.parser.CsvParser;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.java.Log;
@@ -42,6 +43,7 @@ public class CryptoService {
     }
 
     public List<Values> getCryptosByDate(String date){
+        validateDateFormat(date);
         return parser.getAllValues().stream()
                 .filter(values -> {
                     Date timestamp = values.getTimestamp();
@@ -51,6 +53,7 @@ public class CryptoService {
     }
 
     public List<Values> getSpecificCryptoByDate(CryptoType type, String date){
+        validateDateFormat(date);
         return getAllValuesByCryptoType(type).stream()
                 .filter(values -> {
                     Date timestamp = values.getTimestamp();
@@ -61,6 +64,8 @@ public class CryptoService {
 
     @SneakyThrows
     public List<Values> getValuesOfDateRange(String startDate, String endDate){
+        validateDateFormat(startDate);
+        validateDateFormat(endDate);
         Date start = new SimpleDateFormat(DATE_PATTERN).parse(startDate);
         Date end = new SimpleDateFormat(DATE_PATTERN).parse(endDate);
         return getAllValues().stream()
@@ -82,6 +87,7 @@ public class CryptoService {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
     }
     public Map<String, Double> getNormalizedValuesForSpecificDay(String date){
+        validateDateFormat(date);
         return Arrays.stream(CryptoType.values())
                 .collect(Collectors.toMap(Enum::name,t-> getNormalizedScoreOfSpecificDate(t, date)))
                 .entrySet().stream()
@@ -129,6 +135,15 @@ public class CryptoService {
     private Values calculateMinValues(CryptoType type){
         return parser.parseCsvFile(type).stream()
                 .min(Comparator.comparing(Values::getPrice)).orElse(null);
+    }
+
+    private void validateDateFormat(String date){
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_PATTERN);
+        try {
+            simpleDateFormat.parse(date);
+        }catch (Exception e){
+            throw  new IllegalArgumentException("Date format must be yyyy-MM-dd");
+        }
     }
 
 }
