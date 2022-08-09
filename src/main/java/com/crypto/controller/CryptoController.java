@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/crypto")
@@ -74,19 +75,19 @@ public class CryptoController {
     @ApiOperation(httpMethod = "GET", value = "Returns max/min/newest/oldest crypto of a specific type", notes = "description")
     @GetMapping("/{cryptoType}/request/{requestType}")
     public Values requestedValue(@PathVariable String cryptoType, @PathVariable String requestType){
-        return cryptoService.getRequestedValue(CryptoType.valueOf(cryptoType), RequestType.valueOf(requestType));
+        return cryptoService.getRequestedValue(CryptoType.valueOf(cryptoType), RequestType.fromString(requestType));
     }
 
-    @ApiOperation(httpMethod = "GET", value = "Returns normalized score of a specific crypto type", notes = "description")
-    @GetMapping("/normalized/{cryptoType}")
-    public Double normalizedScore(@PathVariable String cryptoType){
-        return cryptoService.getNormalizedScore(CryptoType.valueOf(cryptoType));
+    @ApiOperation(httpMethod = "GET", value = "Returns range of normalized values", notes = "description")
+    @GetMapping("/normalized")
+    public Map<String, Double> normalizedRange(){
+        return cryptoService.getNormalizedValues();
     }
 
-    @ApiOperation(httpMethod = "GET", value = "Returns normalized score of a specific crypto type of a specific day", notes = "description")
-    @GetMapping("/normalized/{cryptoType}/dates")
-    public Double normalizedScoreOfDate(@PathVariable String cryptoType,@RequestParam String date){
-        return cryptoService.getNormalizedScoreOfSpecificDate(CryptoType.valueOf(cryptoType), date);
+    @ApiOperation(httpMethod = "GET", value = "Returns range of normalized of a specific day", notes = "description")
+    @GetMapping("/normalized/dates")
+    public Map<String, Double> normalizedScoreOfDate(@RequestParam String date){
+        return cryptoService.getNormalizedValuesForSpecificDay(date);
     }
 
 

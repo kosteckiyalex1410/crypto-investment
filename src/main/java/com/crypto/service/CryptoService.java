@@ -10,11 +10,16 @@ import lombok.extern.java.Log;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @AllArgsConstructor
@@ -22,7 +27,7 @@ import java.util.stream.Collectors;
 public class CryptoService {
 
     private final CsvParser parser;
-    private final String DATE_PATTERN = "yyyy-MM-dd";
+    private static final String DATE_PATTERN = "yyyy-MM-dd";
 
     public List<Values> getAllValues(){
         return parser.getAllValues();
@@ -64,10 +69,39 @@ public class CryptoService {
     }
 
     public List<Values> getSortedValues(){
-        return parser.getAllValues().stream().sorted(Comparator.comparing(Values::getPrice).reversed()).collect(Collectors.toList());
+        return parser.getAllValues().stream()
+                .sorted(Comparator.comparing(Values::getPrice).reversed())
+                .collect(Collectors.toList());
     }
 
-    public Double getNormalizedScore(CryptoType type){
+    public Map<String, Double> getNormalizedValues(){
+        return Arrays.stream(CryptoType.values())
+                .collect(Collectors.toMap(Enum::name, this::calculateNormalizedScore))
+                .entrySet().stream()
+                .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
+    }
+    public Map<String, Double> getNormalizedValuesForSpecificDay(String date){
+        return Arrays.stream(CryptoType.values())
+                .collect(Collectors.toMap(Enum::name,t-> getNormalizedScoreOfSpecificDate(t, date)))
+                .entrySet().stream()
+                .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
+    }
+
+    public Values getRequestedValue(CryptoType cryptoType, RequestType requestType){
+
+        switch (requestType){
+            case MAX: return calculateMaxValues(cryptoType);
+            case  MIN: return calculateMinValues(cryptoType);
+            case NEWEST: return calculateNewestCrypto(cryptoType);
+            case OLDEST: return calculateOldestCrypto(cryptoType);
+            default:
+                throw new IllegalArgumentException("Undefined request type");
+        }
+    }
+
+    public Double calculateNormalizedScore(CryptoType type){
         Values minValue = calculateMinValues(type);
         Values maxValue = calculateMaxValues(type);
         return  (maxValue.getPrice() - minValue.getPrice()) / minValue.getPrice();
@@ -79,23 +113,11 @@ public class CryptoService {
         return (max.get().getPrice() - min.get().getPrice())/ min.get().getPrice();
     }
 
-    public Values getRequestedValue(CryptoType cryptoType, RequestType requestType){
-
-        switch (requestType){
-            case max: return calculateMaxValues(cryptoType);
-            case  min: return calculateMinValues(cryptoType);
-            case newest: return getNewestCrypto(cryptoType);
-            case oldest: return getOldestCrypto(cryptoType);
-            default:
-                throw new IllegalArgumentException("Undefined request type");
-        }
-    }
-
-    private Values getOldestCrypto(CryptoType type){
+    private Values calculateOldestCrypto(CryptoType type){
         return getAllValuesByCryptoType(type).stream().max(Comparator.comparing(Values :: getTimestamp)).orElse(null);
     }
 
-    private Values getNewestCrypto(CryptoType type){
+    private Values calculateNewestCrypto(CryptoType type){
         return getAllValuesByCryptoType(type).stream().min(Comparator.comparing(Values :: getTimestamp)).orElse(null);
     }
 

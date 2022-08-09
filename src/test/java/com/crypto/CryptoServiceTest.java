@@ -17,31 +17,31 @@ public class CryptoServiceTest {
 
     @Test
     public void testOldestValue(){
-        assertThat(cryptoService.getRequestedValue(CryptoType.DOGE, RequestType.oldest).getPrice())
+        assertThat(cryptoService.getRequestedValue(CryptoType.DOGE, RequestType.OLDEST).getPrice())
                 .isEqualTo(0.1415);
     }
 
     @Test
     public void testNewestValue(){
-        assertThat(cryptoService.getRequestedValue(CryptoType.DOGE, RequestType.newest).getPrice())
+        assertThat(cryptoService.getRequestedValue(CryptoType.DOGE, RequestType.NEWEST).getPrice())
                 .isEqualTo(0.1702);
     }
 
     @Test
     public void testMinValue(){
-        assertThat(cryptoService.getRequestedValue(CryptoType.DOGE, RequestType.min).getPrice())
+        assertThat(cryptoService.getRequestedValue(CryptoType.DOGE, RequestType.MIN).getPrice())
                 .isEqualTo(0.129);
     }
 
     @Test
     public void testMaxValue(){
-        assertThat(cryptoService.getRequestedValue(CryptoType.DOGE, RequestType.max).getPrice())
+        assertThat(cryptoService.getRequestedValue(CryptoType.DOGE, RequestType.MAX).getPrice())
                 .isEqualTo(0.1941);
     }
 
     @Test
     public void testNormalizedScore(){
-        assertThat(cryptoService.getNormalizedScore(CryptoType.DOGE))
+        assertThat(cryptoService.calculateNormalizedScore(CryptoType.DOGE))
                 .isEqualTo(0.5046511627906975);
     }
 
